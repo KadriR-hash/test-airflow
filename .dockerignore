@@ -1,0 +1,7 @@
+venv
+logs
+plugins
+dags
+.gitignore
+docker-compose.yaml
+

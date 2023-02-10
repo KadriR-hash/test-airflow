@@ -1,0 +1,7 @@
+logs/
+venv/
+dags/data/
+.idea
+dags/files/
+plugins
+.env
