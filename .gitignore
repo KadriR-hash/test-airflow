@@ -5,3 +5,4 @@ dags/data/
 dags/files/
 plugins
 .env
+__pycache__
