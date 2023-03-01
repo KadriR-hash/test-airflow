@@ -1,4 +1,4 @@
-<mxfile host="app.diagrams.net" modified="2023-03-01T16:23:55.622Z" agent="5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36" etag="YwnXBuO7ibeBsMfodHZL" version="20.8.23" type="github">
+<mxfile host="app.diagrams.net" modified="2023-03-01T16:24:31.369Z" agent="5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36" etag="JHLaK0ST9JdmHMPlswY_" version="20.8.23" type="github">
   <diagram name="Page-1" id="KdZHtrWoCW37XqJNuPZM">
     <mxGraphModel dx="3760" dy="3973" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="2336" pageHeight="1654" math="0" shadow="0">
       <root>
@@ -263,7 +263,7 @@
             </Array>
           </mxGeometry>
         </mxCell>
-        <mxCell id="9KBdcmIZllk7k-SYJM85-31" value="&lt;&lt;Entity&gt;&gt;&#xa;Task" style="swimlane;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;rounded=1;fontSize=14;fontStyle=0;strokeWidth=2;resizeParent=0;resizeLast=1;shadow=0;dashed=0;align=center;" vertex="1" parent="1">
+        <mxCell id="9KBdcmIZllk7k-SYJM85-31" value="&lt;&lt;Entity&gt;&gt;&#xa;TaskConfigurator" style="swimlane;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;rounded=1;fontSize=14;fontStyle=0;strokeWidth=2;resizeParent=0;resizeLast=1;shadow=0;dashed=0;align=center;" vertex="1" parent="1">
           <mxGeometry x="-250" y="-1765" width="160" height="70" as="geometry" />
         </mxCell>
         <mxCell id="9KBdcmIZllk7k-SYJM85-34" value="Use" style="endArrow=open;endSize=12;dashed=1;html=1;rounded=0;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="PkI1gQ4OXZkmpvxFJ7Tn-45" target="9KBdcmIZllk7k-SYJM85-31">
