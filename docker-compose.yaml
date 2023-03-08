@@ -27,7 +27,7 @@
 #                                Default: apache/airflow:2.5.1
 # AIRFLOW_UID                  - User ID in Airflow containers
 #                                Default: 50000
-# AIRFLOW_PROJ_DIR             - Base path to which all the files will be volumed.
+# AIRFLOW_PROJ_DIR             - Base path to which all the output will be volumed.
 #                                Default: .
 # Those configurations are useful mostly in case of standalone testing/running Airflow in test/try-out mode
 #
@@ -65,6 +65,9 @@ x-airflow-common:
     - ./dags:/opt/airflow/dags
     - ./logs:/opt/airflow/logs
     - ./plugins:/opt/airflow/plugins
+    - ./dags/outputs:/opt/airflow/dags/outputs
+    - source_dags:/opt/airflow/dags/outputs:rw
+
   user: "${AIRFLOW_UID:-50000}:0"
   depends_on:
     &airflow-common-depends-on
@@ -101,15 +104,17 @@ services:
 
   airflow-webserver:
     <<: *airflow-common
-    command: webserver
+    command: bash -c "airflow webserver && pip install dag-factory"
     ports:
       - 8080:8080
+
     healthcheck:
       test: ["CMD", "curl", "--fail", "http://localhost:8080/health"]
       interval: 10s
       timeout: 10s
       retries: 5
     restart: always
+
     depends_on:
       <<: *airflow-common-depends-on
       airflow-init:
@@ -117,13 +122,15 @@ services:
 
   airflow-scheduler:
     <<: *airflow-common
-    command: scheduler
+    command: bash -c "airflow scheduler && pip install dag-factory"
+
     healthcheck:
       test: ["CMD-SHELL", 'airflow jobs check --job-type SchedulerJob --hostname "$${HOSTNAME}"']
       interval: 10s
       timeout: 10s
       retries: 5
     restart: always
+
     depends_on:
       <<: *airflow-common-depends-on
       airflow-init:
@@ -131,7 +138,7 @@ services:
 
   airflow-worker:
     <<: *airflow-common
-    command: celery worker
+    command: bash -c "airflow celery worker && pip install dag-factory"
     healthcheck:
       test:
         - "CMD-SHELL"
@@ -152,13 +159,15 @@ services:
 
   airflow-triggerer:
     <<: *airflow-common
-    command: triggerer
+    command: bash -c "airflow triggerer && pip install dag-factory"
+
     healthcheck:
       test: ["CMD-SHELL", 'airflow jobs check --job-type TriggererJob --hostname "$${HOSTNAME}"']
       interval: 10s
       timeout: 10s
       retries: 5
     restart: always
+
     depends_on:
       <<: *airflow-common-depends-on
       airflow-init:
@@ -227,8 +236,8 @@ services:
           echo "   https://airflow.apache.org/docs/apache-airflow/stable/howto/docker-compose/index.html#before-you-begin"
           echo
         fi
-        mkdir -p /sources/logs /sources/dags /sources/plugins
-        chown -R "${AIRFLOW_UID}:0" /sources/{logs,dags,plugins}
+        mkdir -p /sources/logs /sources/dags /sources/plugins /sources/outputs
+        chown -R "${AIRFLOW_UID}:0" /sources/{logs,dags,plugins,outputs}
         exec /entrypoint airflow version
     # yamllint enable rule:line-length
     environment:
@@ -310,15 +319,25 @@ services:
       ports:
         - "5050:80"
       healthcheck:
-        test: [ "CMD", "curl", "-f", "http://localhost:5050/" ]
+        test: [ "CMD", "curl", "-f", "http://localhost:5050/login" ]
         interval: 30s
         timeout: 10s
         retries: 5
+  fastapi:
+      build: .
+      ports:
+        - "8000:8000"
+      healthcheck:
+        test: [ "CMD", "curl", "--fail", "http://localhost:8000/health" ]
+        interval: 30s
+        timeout: 10s
+        retries: 3
+      volumes:
+        - source_dags:/outputs:rw
+        - ./app/outputs:/outputs:rw
 
 volumes:
     postgres-db-volume:
     postgresdb:
     pgadmin:
-
-
-
+    source_dags:
