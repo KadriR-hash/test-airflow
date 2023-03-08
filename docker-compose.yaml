@@ -67,7 +67,7 @@ x-airflow-common:
     - ./plugins:/opt/airflow/plugins
     - ./dags/outputs:/opt/airflow/dags/outputs
     - source_dags:/opt/airflow/dags/outputs:rw
-
+  command: pip install dag-factory
   user: "${AIRFLOW_UID:-50000}:0"
   depends_on:
     &airflow-common-depends-on
@@ -104,7 +104,7 @@ services:
 
   airflow-webserver:
     <<: *airflow-common
-    command: bash -c "airflow webserver && pip install dag-factory"
+    command: bash -c "pip install dag-factory  && airflow webserver"
     ports:
       - 8080:8080
 
@@ -122,7 +122,7 @@ services:
 
   airflow-scheduler:
     <<: *airflow-common
-    command: bash -c "airflow scheduler && pip install dag-factory"
+    command: bash -c "pip install dag-factory  && airflow scheduler"
 
     healthcheck:
       test: ["CMD-SHELL", 'airflow jobs check --job-type SchedulerJob --hostname "$${HOSTNAME}"']
@@ -138,7 +138,7 @@ services:
 
   airflow-worker:
     <<: *airflow-common
-    command: bash -c "airflow celery worker && pip install dag-factory"
+    command: bash -c "pip install dag-factory  && airflow celery worker"
     healthcheck:
       test:
         - "CMD-SHELL"
@@ -159,7 +159,7 @@ services:
 
   airflow-triggerer:
     <<: *airflow-common
-    command: bash -c "airflow triggerer && pip install dag-factory"
+    command: bash -c "pip install dag-factory  && airflow triggerer"
 
     healthcheck:
       test: ["CMD-SHELL", 'airflow jobs check --job-type TriggererJob --hostname "$${HOSTNAME}"']
