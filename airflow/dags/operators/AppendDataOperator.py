@@ -27,7 +27,7 @@ class AppendDataOperator(BaseOperator):
     def execute(self, context):
         try:
 
-            data_path = "/opt/airflow/dags/output/employees.csv"
+            data_path = "/opt/airflow/dags/files/employees.csv"
             url = Variable.get("url-data")
             # Send an HTTP request to the external URL and retrieve the response as a JSON object
             response = requests.get(url).text

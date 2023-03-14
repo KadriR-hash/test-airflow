@@ -13,7 +13,9 @@ from operators.MergeDataOperator import MergeDataOperator
 from operators.CleanDataOperator import CleanDataOperator
 from operators.GetDataOperator import GetDataOperator
 from operators.CreateTableOperator import CreateTableOperator
-from dagfactory import load_yaml_dags
+import dagfactory
+
+
 """ 
         process-employees DAG
 """
@@ -101,10 +103,10 @@ def ProcessEmployees():
     InsertDataEmployees >> DatabaseCleaning >> DataCleaning >> MergeEmployeesTemp >> FetchData
 
 dag = ProcessEmployees()
-"""dag_factory = dagfactory.DagFactory("/opt/airflow/dags/other.yaml")
 
+
+dag_factory = dagfactory.DagFactory("/opt/airflow/outputs/output.yaml")
 dag_factory.clean_dags(globals())
-dag_factory.generate_dags(globals())"""
+dag_factory.generate_dags(globals())
 
 
-load_yaml_dags(globals_dict=globals(), suffix=['other.yaml'])

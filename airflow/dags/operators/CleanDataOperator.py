@@ -24,7 +24,7 @@ class CleanDataOperator(BaseOperator):
         try:
 
             # clean data in the csv file
-            data_path = "/opt/airflow/dags/output/employees.csv"
+            data_path = "/opt/airflow/dags/files/employees.csv"
             postgres_hook = PostgresHook(postgres_conn_id=self.postgres_conn_id)
             conn = postgres_hook.get_conn()
             cur = conn.cursor()

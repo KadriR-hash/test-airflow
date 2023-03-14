@@ -25,7 +25,7 @@ class GetDataOperator(BaseOperator):
         try:
 
             logging.info("Task3 for getting DATA is starting.")
-            data_path = "/opt/airflow/dags/output/employees.csv"
+            data_path = "/opt/airflow/dags/files/employees.csv"
             url = Variable.get("url-data")
 
             os.makedirs(os.path.dirname(data_path), exist_ok=True)

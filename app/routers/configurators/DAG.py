@@ -1,39 +1,36 @@
 import logging
 from abc import ABC
-from fastapi import HTTPException
-import requests
-from fastapi.encoders import jsonable_encoder
-from dotenv import load_dotenv
-import os
 from .DAGConfigurator import DAGConfigurator
+from .Task import Task
 from .models.SimpleDAGConfigurator import SimpleDAGConfigurator
 
 logging.basicConfig(level=logging.INFO)
 
 
 class DAG(DAGConfigurator, ABC):
-    """def __init__(self, simple_dag_configurator):
-        self.simple_dag_configurator = simple_dag_configurator
-        self.tasks = []"""
 
     def create_dag(self, dag: SimpleDAGConfigurator):
-        """load_dotenv()
-        airflow_api_url = os.environ.get('AIRFLOW_API_URL')
-        airflow_username = os.environ.get('AIRFLOW_USERNAME')
-        airflow_password = os.environ.get('AIRFLOW_PASSWORD')
-        payload = jsonable_encoder(dag)
-        response = requests.post(f'{airflow_api_url}/dags',
-                                 json=payload,
-                                 auth=(airflow_username, airflow_password)
-                                 )
+        dag_dict = dag.dict()
+        dag_dict_copy = dag_dict.copy()
+        for key in dag_dict_copy.keys():
+            if key == 'dag_id':
+                element = dag_dict_copy[key]
+                dag_dict.pop(key)
+                new_dict = {element: dag_dict}
+            if key == 'extra_args':
+                dag_dict.pop(key)
+                dag_dict.update(dag_dict_copy[key])
+        for key in new_dict[element].keys():
+            if key == 'tasks':
+                tasks = {}
+                for item in new_dict[element][key]:
+                    task = Task()
+                    task_dict, element = task.create_task(item)
+                    tasks[element] = task_dict
+                dag_dict['tasks'] = tasks
+                logging.info(f"tasks:{tasks}")
+        return new_dict
 
-        if response.status_code == 200:
-            logging.info('Connection created successfully!')
-        else:
-            raise HTTPException(status_code=response.status_code,
-                                detail=response.text
-                                )
-"""
     def add_task(self, task):
         # self.tasks.append(task)
         pass

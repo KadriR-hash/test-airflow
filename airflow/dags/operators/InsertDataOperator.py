@@ -25,7 +25,7 @@ class InsertDataOperator(BaseOperator):
     def execute(self, context):
         try:
 
-            data_path = "/opt/airflow/dags/output/employees.csv"
+            data_path = "/opt/airflow/dags/files/employees.csv"
             postgres_hook = PostgresHook(postgres_conn_id="tutorial_pg_conn")
             conn = postgres_hook.get_conn()
             cur = conn.cursor()

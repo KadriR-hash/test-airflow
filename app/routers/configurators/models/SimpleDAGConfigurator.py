@@ -1,13 +1,11 @@
 from pydantic import BaseModel
-from typing import Optional
+from typing import Dict
 
 from .TaskConfigurator import TaskConfigurator
 
 
 class SimpleDAGConfigurator(BaseModel):
     dag_id: str
-    owner: str
-    schedule_interval: Optional[str]
-    start_date: Optional[str]
-    dagrun_timeout: Optional[str]
-    tasks: list[TaskConfigurator] = []
+    default_args: Dict
+    extra_args: Dict
+    tasks: list[TaskConfigurator]

@@ -41,13 +41,24 @@
 # Feel free to modify this file to suit your needs.
 ---
 version: '3'
+volumes:
+    postgres-db-volume:
+    postgresdb:
+    pgadmin:
+    source_dags:
+      driver: local
+      driver_opts:
+          type: 'none'
+          o: 'bind'
+          device: './app/outputs'
+
 x-airflow-common:
   &airflow-common
   # In order to add custom dependencies or upgrade provider packages you can use your extended image.
   # Comment the image line, place your Dockerfile in the directory where you placed the docker-compose.yaml
   # and uncomment the "build" line below, Then run `docker-compose build` to build the images.
-  image: ${AIRFLOW_IMAGE_NAME:-apache/airflow:2.5.1}
-  # build: .
+  image: apache/airflow
+  #build: .
   environment:
     &airflow-common-env
     AIRFLOW__CORE__EXECUTOR: CeleryExecutor
@@ -62,12 +73,11 @@ x-airflow-common:
     AIRFLOW__API__AUTH_BACKENDS: 'airflow.api.auth.backend.basic_auth,airflow.api.auth.backend.session'
     _PIP_ADDITIONAL_REQUIREMENTS: ${_PIP_ADDITIONAL_REQUIREMENTS:-}
   volumes:
-    - ./dags:/opt/airflow/dags
-    - ./logs:/opt/airflow/logs
-    - ./plugins:/opt/airflow/plugins
-    - ./dags/outputs:/opt/airflow/dags/outputs
-    - source_dags:/opt/airflow/dags/outputs:rw
-  command: pip install dag-factory
+    - source_dags:/opt/airflow/outputs
+    - ./airflow/dags:/opt/airflow/dags
+    - ./airflow/logs:/opt/airflow/logs
+    - ./airflow/plugins:/opt/airflow/plugins
+
   user: "${AIRFLOW_UID:-50000}:0"
   depends_on:
     &airflow-common-depends-on
@@ -107,7 +117,6 @@ services:
     command: bash -c "pip install dag-factory  && airflow webserver"
     ports:
       - 8080:8080
-
     healthcheck:
       test: ["CMD", "curl", "--fail", "http://localhost:8080/health"]
       interval: 10s
@@ -249,7 +258,7 @@ services:
       _PIP_ADDITIONAL_REQUIREMENTS: ''
     user: "0:0"
     volumes:
-      - ${AIRFLOW_PROJ_DIR:-.}:/sources
+      - ${AIRFLOW_PROJ_DIR:-./airflow}:/sources
 
   airflow-cli:
     <<: *airflow-common
@@ -333,11 +342,6 @@ services:
         timeout: 10s
         retries: 3
       volumes:
-        - source_dags:/outputs:rw
-        - ./app/outputs:/outputs:rw
+        - source_dags:/outputs
 
-volumes:
-    postgres-db-volume:
-    postgresdb:
-    pgadmin:
-    source_dags:
+
