@@ -4,25 +4,16 @@ import os
 import pendulum
 from airflow.decorators import dag
 from airflow.operators.python import BranchPythonOperator
-from airflow.utils.edgemodifier import Label
-
+from operators.cleanDatabaseOperator import CleanDatabaseOperator
+from operators.InsertDataOperator import InsertDataOperator
+from utils.choose_branch import choose_branch
 from operators.AppendDataOperator import AppendDataOperator
 from operators.FetchDataOperator import FetchDataOperator
 from operators.MergeDataOperator import MergeDataOperator
 from operators.CleanDataOperator import CleanDataOperator
 from operators.GetDataOperator import GetDataOperator
 from operators.CreateTableOperator import CreateTableOperator
-
-
-def choose_branch(**kwargs):
-    """
-        Run an extra branch on if the file employees.csv exists and not empty !
-        """
-    data_path = "/opt/airflow/dags/files/employees.csv"
-    if os.path.exists(data_path):
-        return "append_data_employees"
-    else:
-        return "get_data_employees"
+import dagfactory
 
 
 """ 
@@ -38,7 +29,7 @@ def choose_branch(**kwargs):
     dagrun_timeout=datetime.timedelta(minutes=60),
 )
 def ProcessEmployees():
-    create_employees_table = CreateTableOperator(
+    CreateEmployeesTable = CreateTableOperator(
         task_id="create_employees_table",
         postgres_conn_id="tutorial_pg_conn",
         sql="CREATE TABLE  employees(Serial_Number NUMERIC PRIMARY KEY,Company_Name TEXT,Employee_Markme TEXT,"
@@ -46,7 +37,7 @@ def ProcessEmployees():
 
     )
 
-    create_employees_temp_table = CreateTableOperator(
+    CreateEmployeesTempTable = CreateTableOperator(
         task_id="create_employees_temp_table",
         postgres_conn_id="tutorial_pg_conn",
         sql="CREATE TABLE  employees_temp(Serial_Number NUMERIC PRIMARY KEY,Company_Name TEXT,Employee_Markme TEXT,"
@@ -54,32 +45,41 @@ def ProcessEmployees():
 
     )
 
-    branch_task = BranchPythonOperator(
+    BranchTask = BranchPythonOperator(
         task_id='branch_task',
+        python_callable=choose_branch,
         provide_context=True,
-        python_callable=choose_branch
-    )
-
-    get_data_employees = GetDataOperator(
-        task_id="get_data_employees",
-        postgres_conn_id="tutorial_pg_conn",
         trigger_rule='none_failed',
-
     )
-    append_data_employees = AppendDataOperator(
+
+    GetDataEmployees = GetDataOperator(
+        task_id="get_data_employees",
+    )
+    InsertDataEmployees = InsertDataOperator(
+        task_id="insert_data_employees",
+        postgres_conn_id="tutorial_pg_conn",
+        trigger_rule='one_success'
+    )
+    AppendDataEmployees = AppendDataOperator(
         task_id="append_data_employees",
         postgres_conn_id="tutorial_pg_conn",
+
+    )
+    DataCleaning = CleanDataOperator(
+        task_id="cleaning_employees",
+        postgres_conn_id="tutorial_pg_conn",
         trigger_rule='none_failed',
     )
-    data_cleansing_temp = CleanDataOperator(
+    DatabaseCleaning = CleanDatabaseOperator(
         task_id="cleaning_employees_temp",
         postgres_conn_id="tutorial_pg_conn",
-        sql="UPDATE employees_temp SET Company_Name = UPPER(Company_Name), Employee_Markme = UPPER(Employee_Markme),"
-            "Description = UPPER(Description);",
-        trigger_rule='none_failed'
+        sql="UPDATE employees_temp SET Company_Name = UPPER(REPLACE(Company_Name, ',', '')), Employee_Markme = UPPER("
+            "REPLACE(Employee_Markme, ',', '')),"
+            "Description = UPPER(REPLACE(Description, ',', ''));",
+        trigger_rule='none_failed',
     )
 
-    merge_employees_temp = MergeDataOperator(
+    MergeEmployeesTemp = MergeDataOperator(
         task_id="merge_employees_temp",
         postgres_conn_id="tutorial_pg_conn",
         sql="START TRANSACTION ISOLATION LEVEL READ UNCOMMITTED ; INSERT INTO employees SELECT * FROM employees_temp; "
@@ -88,7 +88,7 @@ def ProcessEmployees():
 
     )
 
-    fetch_data = FetchDataOperator(
+    FetchData = FetchDataOperator(
         task_id="fetch_employees_data",
         postgres_conn_id="tutorial_pg_conn",
         sql="SELECT * FROM employees",
@@ -99,12 +99,14 @@ def ProcessEmployees():
         SET DEPENDENCIES
     """
 
-    [create_employees_table,
-     create_employees_temp_table] >> branch_task
-    branch_task >> Label(
-        "File not exists") >> get_data_employees >> data_cleansing_temp >> merge_employees_temp >> fetch_data
-    branch_task >> Label(
-        "File exists") >> append_data_employees >> data_cleansing_temp >> merge_employees_temp >> fetch_data
-
+    [CreateEmployeesTable,CreateEmployeesTempTable] >> BranchTask >> [GetDataEmployees,AppendDataEmployees] >> InsertDataEmployees
+    InsertDataEmployees >> DatabaseCleaning >> DataCleaning >> MergeEmployeesTemp >> FetchData
 
 dag = ProcessEmployees()
+
+
+dag_factory = dagfactory.DagFactory("/opt/airflow/outputs/output.yaml")
+dag_factory.clean_dags(globals())
+dag_factory.generate_dags(globals())
+
+

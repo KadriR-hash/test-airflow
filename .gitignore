@@ -1,8 +1,10 @@
-logs/
+airflow/logs/
 venv/
-dags/data/
+airflow/dags/data/
 .idea
-dags/files/
-plugins
+airflow/dags/files/
+airflow/plugins
 .env
 __pycache__
+airflow/outputs
+app/outputs/*

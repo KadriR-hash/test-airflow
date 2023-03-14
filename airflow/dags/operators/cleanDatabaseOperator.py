@@ -1,3 +1,4 @@
+import csv
 import logging
 
 from airflow.exceptions import AirflowSkipException
@@ -13,15 +14,16 @@ import requests
 from operators.exceptions.CleanDataException import CleanDataException
 
 
-class CleanDataOperator(BaseOperator):
+class CleanDatabaseOperator(BaseOperator):
     @apply_defaults
     def __init__(self, postgres_conn_id, sql, *args, **kwargs):
-        super(CleanDataOperator, self).__init__(*args, **kwargs)
+        super(CleanDatabaseOperator, self).__init__(*args, **kwargs)
         self.postgres_conn_id = postgres_conn_id
         self.sql = sql
 
     def execute(self, context):
         try:
+            # clean database data
             postgres_hook = PostgresHook(postgres_conn_id=self.postgres_conn_id)
             conn = postgres_hook.get_conn()
             cur = conn.cursor()
